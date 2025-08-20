@@ -59,6 +59,9 @@ image = cv2.imread(args["image"])
 if image is None:
     raise ValueError("Could not open or find the image: {}".format(args["image"]))
 # OCR the input image using EasyOCR
+x_start, y_start, x_end, y_end = 100, 450, 800, 700
+cropped_img = image[y_start:y_end, x_start:x_end]
+image = cropped_img
 
 image= get_grayscale(image)  # convierte a escala de grises la imagen
 image = thresholding(image)  # aplica el umbral a la imagen
@@ -86,5 +89,5 @@ for (bbox, text, prob) in results:
 	cv2.putText(image, text, (tl[0], tl[1] - 10),
 		cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 # show the output image
-cv2.imshow("Image", image)
+#cv2.imshow("Image", image)
 cv2.waitKey(0)
