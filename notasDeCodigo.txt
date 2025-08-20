@@ -1,0 +1,14 @@
+para reducir el ruido en la imagen
+
+import cv2
+import numpy as np
+
+img = cv2.imread('image.jpg')
+
+def remove_noise(image):
+    return cv2.medianBlur(image,5)
+
+//cambiarle la escala de grises a la imagen 
+
+def get_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

@@ -2,6 +2,39 @@
 from easyocr import Reader
 import argparse
 import cv2
+import numpy as np
+
+#metodo para la estala de grises en la imagen 
+def get_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+"""
+	#quitarle el ruido a la imagen 
+	def remove_noise(image):
+    return cv2.medianBlur(image,5)
+
+"""
+
+#thresholding
+def thresholding(image):
+    return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+
+#acomodar los taxtos de la imagen a un angulo correcto
+def deskew(image):
+    coords = np.column_stack(np.where(image > 0))
+    angle = cv2.minAreaRect(coords)[-1]
+    if angle < -45:
+        angle = -(90 + angle)
+    else:
+        angle = -angle
+    (h, w) = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    return rotated
+
+
 
 def cleanup_text(text):
 	# strip out non-ASCII text so we can draw the text on the image
@@ -26,10 +59,14 @@ image = cv2.imread(args["image"])
 if image is None:
     raise ValueError("Could not open or find the image: {}".format(args["image"]))
 # OCR the input image using EasyOCR
+
+image= get_grayscale(image)  # convierte a escala de grises la imagen
+image = thresholding(image)  # aplica el umbral a la imagen
+#image = deskew(image)  # corrige el ángulo de la imagen
+#image = remove_noise(image)  # Remove noise
 print("[INFO] OCR'ing input image...")
 reader = Reader(langs, gpu=args["gpu"] > 0)
 results = reader.readtext(image)
-
 
 
 # loop over the results
