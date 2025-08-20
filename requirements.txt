@@ -1,0 +1,4 @@
+opencv-python
+virtualenv 
+virtualenvwrapper
+easyocr
