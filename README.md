@@ -1,3 +1,7 @@
+el documento principal es el que diga    easy_ocr.py
+el documento que funciona pero menos preciso en ocr es OCR_and_CV.py 
+
+
 ejecutar 
 
 
