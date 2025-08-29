@@ -3,6 +3,11 @@ from easyocr import Reader
 import argparse
 import cv2
 import numpy as np
+import time
+
+
+start_time = time.time()
+
 
 #metodo para la estala de grises en la imagen 
 def get_grayscale(image):
@@ -14,6 +19,19 @@ def get_grayscale(image):
     return cv2.medianBlur(image,5)
 
 """
+
+
+def resize_image(image, scale_percent=50):
+    """
+    Reduce la resolución de la imagen según el porcentaje indicado.
+    scale_percent: porcentaje de la resolución original (ej. 50 = reduce a la mitad)
+    """
+    width = int(image.shape[1] * scale_percent / 100)
+    height = int(image.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    resized = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    return resized
+
 
 #thresholding
 def thresholding(image):
@@ -45,7 +63,7 @@ def cleanup_text(text):
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True,
 	help="path to input image to be OCR'd")
-ap.add_argument("-l", "--langs", type=str, default="es,en",
+ap.add_argument("-l", "--langs", type=str, default="es",
 	help="comma separated list of languages to OCR")
 ap.add_argument("-g", "--gpu", type=int, default=-1,
 	help="whether or not GPU should be used")
@@ -59,18 +77,20 @@ image = cv2.imread(args["image"])
 if image is None:
     raise ValueError("Could not open or find the image: {}".format(args["image"]))
 # OCR the input image using EasyOCR
-x_start, y_start, x_end, y_end = 100, 450, 800, 700
+x_start, y_start, x_end, y_end = 500, 900, 2500, 1400    #100, 400, 800, 700  cordenadas de las fotos de las primeras pruebas    500, 900, 2500, 1400 coordenadas para las fotos del 3er dia que tienen una resoliucion mas alta
 cropped_img = image[y_start:y_end, x_start:x_end]
 image = cropped_img
 
 image= get_grayscale(image)  # convierte a escala de grises la imagen
-image = thresholding(image)  # aplica el umbral a la imagen
-#image = deskew(image)  # corrige el ángulo de la imagen
+#image = thresholding(image)  # aplica el umbral a la imagen
+image = deskew(image)  # corrige el ángulo de la imagen
 #image = remove_noise(image)  # Remove noise
+
+image = resize_image(cropped_img, scale_percent=50)   #para reducir la resolucion de la imagen
+
 print("[INFO] OCR'ing input image...")
 reader = Reader(langs, gpu=args["gpu"] > 0)
 results = reader.readtext(image)
-
 
 # loop over the results
 for (bbox, text, prob) in results:
@@ -89,5 +109,8 @@ for (bbox, text, prob) in results:
 	cv2.putText(image, text, (tl[0], tl[1] - 10),
 		cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 # show the output image
-#cv2.imshow("Image", image)
+
+end_time = time.time()
+print("[INFO] Tiempo de ejecución OCR: {:.2f} segundos".format(end_time - start_time))
+cv2.imshow("Image", image)
 cv2.waitKey(0)
